@@ -14,7 +14,6 @@ cross_compile:
 
 webserver_compile:
 	GOOS=linux GOARCH=amd64 go build -o ../bin/attribuitions-local-server-amd64-linux ./cmd/webserver/main.go
-	upx -9 ../bin/attribuitions-amd64-linux
 
 test:
 	go test -v -count=1 ./cmd/...

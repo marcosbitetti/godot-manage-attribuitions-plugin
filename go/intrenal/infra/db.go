@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/marcosbitetti/godot-manage-attribuitions-plugin/intrenal/domain"
@@ -33,7 +34,8 @@ type StorageInterface interface {
 }
 
 type Storage struct {
-	db *sql.DB
+	db     *sql.DB
+	locker *sync.Mutex
 }
 
 var _ StorageInterface = &Storage{db: nil}
@@ -72,6 +74,9 @@ func NewStorage(path string) (*Storage, error) {
 }
 
 func (s *Storage) CloseDatabase() {
+	s.locker.Lock()
+	defer s.locker.Unlock()
+
 	if s.db == nil {
 		return
 	}
@@ -95,6 +100,9 @@ func initDatabase(storage *Storage) {
 }
 
 func (s *Storage) AddType(name string) error {
+	s.locker.Lock()
+	defer s.locker.Unlock()
+
 	stmt, err := s.db.Prepare(`
 		INSERT INTO types(name) VALUES(?);
 	`)
@@ -116,6 +124,9 @@ func (s *Storage) AddType(name string) error {
 }
 
 func (s *Storage) UpdateType(id int64, name string) error {
+	s.locker.Lock()
+	defer s.locker.Unlock()
+
 	stmt, err := s.db.Prepare(`
 		UPDATE types SET name=? WHERE _id=?
 	`)
@@ -137,6 +148,9 @@ func (s *Storage) UpdateType(id int64, name string) error {
 }
 
 func (s *Storage) DeleteType(id int64) error {
+	s.locker.Lock()
+	defer s.locker.Unlock()
+
 	stmt, err := s.db.Prepare(`DELETE FROM types WHERE _id = ?`)
 	if err != nil {
 		return errors.Wrap(err, "cant prepare to delete type")
@@ -154,6 +168,9 @@ func (s *Storage) DeleteType(id int64) error {
 }
 
 func (s *Storage) ListTypes() ([]domain.Type, error) {
+	s.locker.Lock()
+	defer s.locker.Unlock()
+
 	list := make([]domain.Type, 0)
 	rows, err := s.db.Query(`
 		SELECT _id, name FROM types ORDER BY name COLLATE NOCASE ASC
@@ -177,6 +194,9 @@ func (s *Storage) ListTypes() ([]domain.Type, error) {
 }
 
 func (s *Storage) AddLicence(name string, link string) error {
+	s.locker.Lock()
+	defer s.locker.Unlock()
+
 	stmt, err := s.db.Prepare(`
 		INSERT INTO licences(name, link) VALUES(?, ?);
 	`)
@@ -198,6 +218,9 @@ func (s *Storage) AddLicence(name string, link string) error {
 }
 
 func (s *Storage) UpdateLicence(id int64, name string, link string) error {
+	s.locker.Lock()
+	defer s.locker.Unlock()
+
 	stmt, err := s.db.Prepare(`
 		UPDATE licences SET name=?, link=? WHERE _id=?
 	`)
@@ -219,6 +242,9 @@ func (s *Storage) UpdateLicence(id int64, name string, link string) error {
 }
 
 func (s *Storage) DeleteLicence(id int64) error {
+	s.locker.Lock()
+	defer s.locker.Unlock()
+
 	stmt, err := s.db.Prepare(`DELETE FROM licences WHERE _id = ?`)
 	if err != nil {
 		return errors.Wrap(err, "cant prepare to delete licence")
@@ -236,6 +262,9 @@ func (s *Storage) DeleteLicence(id int64) error {
 }
 
 func (s *Storage) ListLicences() ([]domain.Licence, error) {
+	s.locker.Lock()
+	defer s.locker.Unlock()
+
 	list := make([]domain.Licence, 0)
 	rows, err := s.db.Query(`
 		SELECT _id, name, link FROM licences ORDER BY name COLLATE NOCASE ASC
@@ -259,6 +288,9 @@ func (s *Storage) ListLicences() ([]domain.Licence, error) {
 }
 
 func (s *Storage) AddAttribuition(name string, fileame string, author string, link string, ctype string, licence string) error {
+	s.locker.Lock()
+	defer s.locker.Unlock()
+
 	stmt, err := s.db.Prepare(`
 		INSERT InTO credits
 		(name, filename, author, link, type_id, licence_id)
@@ -284,6 +316,9 @@ func (s *Storage) AddAttribuition(name string, fileame string, author string, li
 }
 
 func (s *Storage) FindAttribuitions(ascDesc string, search string) ([]domain.Attribuition, error) {
+	s.locker.Lock()
+	defer s.locker.Unlock()
+
 	list := make([]domain.Attribuition, 0)
 	whereClause, args := mountQueryWhere(search)
 	query := fmt.Sprintf(`
@@ -327,6 +362,9 @@ func mountQueryWhere(q string) (string, []interface{}) {
 }
 
 func (s *Storage) UpdateAttribuition(id int64, name string, fileame string, author string, link string, ctype string, licence string) error {
+	s.locker.Lock()
+	defer s.locker.Unlock()
+
 	stmt, err := s.db.Prepare(`
 		UPDATE credits SET
 			name=?,
@@ -353,6 +391,9 @@ func (s *Storage) UpdateAttribuition(id int64, name string, fileame string, auth
 }
 
 func (s *Storage) DeleteAttribuition(id int64) error {
+	s.locker.Lock()
+	defer s.locker.Unlock()
+
 	stmt, err := s.db.Prepare(`DELETE FROM credits WHERE _id = ?`)
 	if err != nil {
 		return errors.Wrap(err, "cant prepare to delete attribuition")
