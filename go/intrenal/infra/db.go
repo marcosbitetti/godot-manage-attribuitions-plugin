@@ -35,7 +35,7 @@ type StorageInterface interface {
 
 type Storage struct {
 	db     *sql.DB
-	locker *sync.Mutex
+	locker sync.Mutex
 }
 
 var _ StorageInterface = &Storage{db: nil}
