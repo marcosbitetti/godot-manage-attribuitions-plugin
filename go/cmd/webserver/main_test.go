@@ -33,9 +33,6 @@ func TestMain(t *testing.T) {
 	t.Run("should return listTypes", func(t *testing.T) {
 		_, responseBody := makeRequest(t, baseUrl+"listTypes", http.StatusOK)
 
-		t.Logf(responseBody)
-		t.Error("s")
-
 		const expected = `3D Model`
 		if !strings.Contains(responseBody, expected) {
 			t.Errorf("Expected response body to be '%s', got %s", expected, responseBody)
